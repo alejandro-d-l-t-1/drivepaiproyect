@@ -1,0 +1,26 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: drivedb
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root       # Contraseña del usuario root
+      MYSQL_DATABASE: DriveDb         # Crea esta base de datos automáticamente al arrancar
+
+    ports:
+      - "3306:3306"   # Puerto local:puerto del contenedor
+                      # Con esto te conectas desde .NET en localhost:3306
+
+    volumes:
+      - drivedb_data:/var/lib/mysql   # Guarda los datos aunque pares el contenedor
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# El volumen guarda los datos en tu máquina aunque el contenedor se elimine
+volumes:
+  drivedb_data:
