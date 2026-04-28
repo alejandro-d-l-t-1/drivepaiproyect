@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router";
-import Login from "./Login";
-import Users from "./Users";
-import Files from "./Files";
+import Login from "~/Login";
+import Users from "~/Users";
+import Files from "~/Files";
 
 // Componente guardián: si no hay token, manda al login
 function PrivateRoute({ children }) {

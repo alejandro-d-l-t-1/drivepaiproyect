@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Instancia base que apunta a nuestro backend .NET
 export const api = axios.create({
-  baseURL: "http://localhost:5217/api", // Cambia el puerto si tu backend corre en otro
+  baseURL: "https://localhost:7000/api", // Cambia el puerto si tu backend corre en otro
   timeout: 10000,
 });
 
