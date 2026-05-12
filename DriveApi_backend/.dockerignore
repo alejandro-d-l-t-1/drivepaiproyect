@@ -3,3 +3,4 @@ obj/
 uploads/
 *.user
 .vs/
+.vscode/

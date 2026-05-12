@@ -1,0 +1,71 @@
+services:
+
+  # ── MySQL ──────────────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: drivedb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: DriveDb
+    ports:
+      - "3306:3306"
+    volumes:
+      - drivedb_data:/var/lib/mysql
+    networks:
+      - drive_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ── Backend .NET ───────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./DriveApi_backend
+      dockerfile: Dockerfile
+    container_name: driveapi
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # "mysql" es el hostname del contenedor MySQL dentro de la red de Docker
+      ConnectionStrings__DefaultConnection: "Server=mysql;Port=3306;Database=DriveDb;User=root;Password=root;"
+      JwtSettings__Issuer: "Compumundohipermegared"
+      JwtSettings__Audience: "DriveApi"
+      JwtSettings__SecretKey: "koNGJ89L4gn9w@0ifAsmf#opdZsgmx_O"
+      JwtSettings__AccessTokenDuration: "60"
+      JwtSettings__RefreshTokenDuration: "1440"
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: "Production"
+    volumes:
+      - drive_uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - drive_network
+
+  # ── Frontend React + Nginx ─────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./DriveApi_frontend
+      dockerfile: Dockerfile
+    container_name: driveapp
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - drive_network
+
+volumes:
+  drivedb_data:
+  drive_uploads:
+
+networks:
+  drive_network:
+    driver: bridge

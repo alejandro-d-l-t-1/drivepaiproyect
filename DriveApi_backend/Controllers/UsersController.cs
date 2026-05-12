@@ -162,21 +162,25 @@ public class UserController : ControllerBase
     // ── PATCH /api/user/{id}/active ───────────────────────────────────────────
     // Activar o desactivar un usuario. Solo admins.
     [Authorize(Policy = "AdminOnly")]
-    [HttpPatch("{id}/active")]
-    public async Task<IActionResult> ToggleActive(int id, [FromBody] bool active)
-    {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null)
-            return NotFound(new { message = "Usuario no encontrado" });
+[HttpPatch("{id}/active")]
+public async Task<IActionResult> ToggleActive(int id, [FromBody] ActiveRequest body)
+{
+    var user = await _context.Users.FindAsync(id);
+    if (user == null)
+        return NotFound(new { message = "Usuario no encontrado" });
 
-        // Un admin no puede desactivarse a sí mismo
-        if (user.Id == GetCurrentUserId() && !active)
-            return BadRequest(new { message = "No puedes desactivar tu propia cuenta." });
+    if (user.Id == GetCurrentUserId() && !body.Active)
+        return BadRequest(new { message = "No puedes desactivar tu propia cuenta." });
 
-        user.Active    = active;
-        user.UpdatedAt = DateTime.UtcNow;
+    user.Active    = body.Active;
+    user.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
-        return Ok(new { message = active ? "Usuario activado." : "Usuario desactivado." });
-    }
+    await _context.SaveChangesAsync();
+    return Ok(new { message = body.Active ? "Usuario activado." : "Usuario desactivado." });
+}
+
+public class ActiveRequest
+{
+    public bool Active { get; set; }
+}
 }
