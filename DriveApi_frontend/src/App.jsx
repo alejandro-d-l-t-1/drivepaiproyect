@@ -1,25 +1,37 @@
 import { Routes, Route, Navigate } from "react-router";
-import Login from "~/Login";
-import Users from "~/Users";
-import Files from "~/Files";
+import Login from "./Login";
+import Register from "./Register";
+import Users from "./Users";
+import Files from "./Files";
 
-// Componente guardián: si no hay token, manda al login
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("accessToken");
   return token ? children : <Navigate to="/login" replace />;
 }
 
+function AdminRoute({ children }) {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  if (!localStorage.getItem("accessToken")) return <Navigate to="/login" replace />;
+  if (user.role !== 1) return <Navigate to="/archivos" replace />;
+  return children;
+}
+
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      {/* Rutas públicas */}
+      <Route path="/login"    element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
-      {/* Todas estas rutas requieren estar autenticado */}
-      <Route path="/usuarios" element={<PrivateRoute><Users /></PrivateRoute>} />
+      {/* Rutas privadas para cualquier usuario autenticado */}
       <Route path="/archivos" element={<PrivateRoute><Files /></PrivateRoute>} />
 
-      {/* Si alguien entra a "/", lo mandamos a archivos */}
+      {/* Ruta privada solo para administradores */}
+      <Route path="/usuarios" element={<AdminRoute><Users /></AdminRoute>} />
+
+      {/* Redirige la raíz a archivos */}
       <Route path="/" element={<Navigate to="/archivos" replace />} />
+      <Route path="*" element={<Navigate to="/archivos" replace />} />
     </Routes>
   );
 }
